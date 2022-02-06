@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+    backend-postgres-12.6:
+        image: postgres:12.6
+        container_name: backend-postgres-12.6
+        networks:
+            backend:
+                aliases:
+                    - backend-postgres-12.6
+        environment:
+            - TZ=America/Sao_Paulo
+            - POSTGRES_USER=admin
+            - POSTGRES_PASSWORD=admin
+            - POSTGRES_DB=financas_db
+        ports:
+            - 5432:5432
+    backend-redis-6.2.6:
+        image: redis:6.2.6
+        container_name: backend-redis-6.2.6
+        networks:
+            backend:
+                aliases:
+                    - backend-redis-6.2.6
+        command: redis-server --requirepass backend
+        ports:
+            - 6379:6379
+    backend-api:
+        container_name: backend-api
+        depends_on:
+            - backend-postgres-12.6
+            - backend-redis-6.2.6
+        networks:
+            - backend
+        # Configuration for building the docker image for the service
+        build:
+          context: . # Use an image built from the specified dockerfile in the current directory.
+          dockerfile: Dockerfile
+        ports:
+          - "8000:8000" # Forward the exposed port 8080 on the container to port 8080 on the host machine
+        restart: unless-stopped
+networks:
+      backend:
+
